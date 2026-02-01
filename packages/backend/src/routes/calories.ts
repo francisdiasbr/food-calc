@@ -47,13 +47,25 @@ router.post('/', async (req: Request<{}, {}, CalorieRequest>, res: Response) => 
     "vitaminD": { "value": "X mcg", "dv": "20 mcg", "percent": number },
     "vitaminE": { "value": "X mg", "dv": "15 mg", "percent": number },
     "vitaminK": { "value": "X mcg", "dv": "120 mcg", "percent": number },
+    "vitaminB1": { "value": "X mg", "dv": "1.1 mg", "percent": number },
+    "vitaminB2": { "value": "X mg", "dv": "1.1 mg", "percent": number },
+    "vitaminB3": { "value": "X mg", "dv": "14 mg", "percent": number },
+    "vitaminB5": { "value": "X mg", "dv": "5 mg", "percent": number },
+    "vitaminB6": { "value": "X mg", "dv": "1.3 mg", "percent": number },
+    "biotin": { "value": "X mcg", "dv": "30 mcg", "percent": number },
+    "folate": { "value": "X mcg", "dv": "400 mcg", "percent": number },
     "vitaminB12": { "value": "X mcg", "dv": "2.4 mcg", "percent": number },
     "calcium": { "value": "X mg", "dv": "1000 mg", "percent": number },
     "iron": { "value": "X mg", "dv": "18 mg", "percent": number },
     "magnesium": { "value": "X mg", "dv": "400 mg", "percent": number },
     "potassium": { "value": "X mg", "dv": "3500 mg", "percent": number },
     "sodium": { "value": "X mg", "dv": "2300 mg", "percent": number },
-    "zinc": { "value": "X mg", "dv": "11 mg", "percent": number }
+    "zinc": { "value": "X mg", "dv": "11 mg", "percent": number },
+    "copper": { "value": "X mcg", "dv": "900 mcg", "percent": number },
+    "manganese": { "value": "X mg", "dv": "1.8 mg", "percent": number },
+    "selenium": { "value": "X mcg", "dv": "55 mcg", "percent": number },
+    "iodine": { "value": "X mcg", "dv": "150 mcg", "percent": number },
+    "phosphorus": { "value": "X mg", "dv": "700 mg", "percent": number }
   }
 }
 Use 0 for nutrients not present. Only respond with valid JSON, no additional text.`,

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { UserProfile, DEFAULT_PROFILE, ACTIVITY_LABELS } from '../types';
+import { DEFAULT_PROFILE, ACTIVITY_LABELS } from '../types';
+import { profileAPI, UserProfile } from '../services/api';
 
 interface Props {
   onSave: (profile: UserProfile) => void;
@@ -10,10 +11,22 @@ function UserProfileEditor({ onSave }: Props) {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const stored = await profileAPI.get();
+        if (stored) {
+          setProfile(stored);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+        // Fallback para localStorage se API falhar
     const stored = localStorage.getItem('userProfile');
     if (stored) {
       setProfile(JSON.parse(stored));
     }
+      }
+    };
+    loadProfile();
   }, []);
 
   const updateField = <K extends keyof UserProfile>(
@@ -35,10 +48,15 @@ function UserProfileEditor({ onSave }: Props) {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    localStorage.setItem('userProfile', JSON.stringify(profile));
-    onSave(profile);
+  const handleSave = async () => {
+    try {
+      const saved = await profileAPI.save(profile);
+      onSave(saved);
     setSaved(true);
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      alert('Erro ao salvar perfil. Verifique se o backend está rodando.');
+    }
   };
 
   const resetToDefaults = () => {
@@ -152,7 +170,7 @@ function UserProfileEditor({ onSave }: Props) {
         </div>
       </div>
 
-      <h4 className="section-title">Metas Diárias - Micronutrientes</h4>
+      <h4 className="section-title">Metas Diárias - Minerais</h4>
       <div className="profile-grid three-cols">
         <div className="profile-field">
           <label>Cálcio</label>
@@ -182,6 +200,53 @@ function UserProfileEditor({ onSave }: Props) {
           <span className="unit">mg</span>
         </div>
         <div className="profile-field">
+          <label>Zinco</label>
+          <input
+            type="number"
+            step="0.1"
+            value={profile.dailyTargets.zinc}
+            onChange={(e) => updateTarget('zinc', Number(e.target.value))}
+          />
+          <span className="unit">mg</span>
+        </div>
+        <div className="profile-field">
+          <label>Cobre</label>
+          <input
+            type="number"
+            value={profile.dailyTargets.copper}
+            onChange={(e) => updateTarget('copper', Number(e.target.value))}
+          />
+          <span className="unit">µg</span>
+        </div>
+        <div className="profile-field">
+          <label>Manganês</label>
+          <input
+            type="number"
+            step="0.1"
+            value={profile.dailyTargets.manganese}
+            onChange={(e) => updateTarget('manganese', Number(e.target.value))}
+          />
+          <span className="unit">mg</span>
+        </div>
+        <div className="profile-field">
+          <label>Selênio</label>
+          <input
+            type="number"
+            value={profile.dailyTargets.selenium}
+            onChange={(e) => updateTarget('selenium', Number(e.target.value))}
+          />
+          <span className="unit">µg</span>
+        </div>
+        <div className="profile-field">
+          <label>Iodo</label>
+          <input
+            type="number"
+            value={profile.dailyTargets.iodine}
+            onChange={(e) => updateTarget('iodine', Number(e.target.value))}
+          />
+          <span className="unit">µg</span>
+        </div>
+        <div className="profile-field">
           <label>Potássio</label>
           <input
             type="number"
@@ -200,15 +265,18 @@ function UserProfileEditor({ onSave }: Props) {
           <span className="unit">mg</span>
         </div>
         <div className="profile-field">
-          <label>Zinco</label>
+          <label>Fósforo</label>
           <input
             type="number"
-            step="0.1"
-            value={profile.dailyTargets.zinc}
-            onChange={(e) => updateTarget('zinc', Number(e.target.value))}
+            value={profile.dailyTargets.phosphorus}
+            onChange={(e) => updateTarget('phosphorus', Number(e.target.value))}
           />
           <span className="unit">mg</span>
         </div>
+      </div>
+
+      <h4 className="section-title">Metas Diárias - Vitaminas</h4>
+      <div className="profile-grid three-cols">
         <div className="profile-field">
           <label>Vitamina A</label>
           <input
@@ -216,7 +284,27 @@ function UserProfileEditor({ onSave }: Props) {
             value={profile.dailyTargets.vitaminA}
             onChange={(e) => updateTarget('vitaminA', Number(e.target.value))}
           />
-          <span className="unit">mcg</span>
+          <span className="unit">µg</span>
+        </div>
+        <div className="profile-field">
+          <label>Vitamina B1</label>
+          <input
+            type="number"
+            step="0.1"
+            value={profile.dailyTargets.vitaminB1}
+            onChange={(e) => updateTarget('vitaminB1', Number(e.target.value))}
+          />
+          <span className="unit">mg</span>
+        </div>
+        <div className="profile-field">
+          <label>Vitamina B2</label>
+          <input
+            type="number"
+            step="0.1"
+            value={profile.dailyTargets.vitaminB2}
+            onChange={(e) => updateTarget('vitaminB2', Number(e.target.value))}
+          />
+          <span className="unit">mg</span>
         </div>
         <div className="profile-field">
           <label>Vitamina B12</label>
@@ -226,7 +314,37 @@ function UserProfileEditor({ onSave }: Props) {
             value={profile.dailyTargets.vitaminB12}
             onChange={(e) => updateTarget('vitaminB12', Number(e.target.value))}
           />
-          <span className="unit">mcg</span>
+          <span className="unit">µg</span>
+        </div>
+        <div className="profile-field">
+          <label>Vitamina B3</label>
+          <input
+            type="number"
+            step="0.1"
+            value={profile.dailyTargets.vitaminB3}
+            onChange={(e) => updateTarget('vitaminB3', Number(e.target.value))}
+          />
+          <span className="unit">mg</span>
+        </div>
+        <div className="profile-field">
+          <label>Vitamina B5</label>
+          <input
+            type="number"
+            step="0.1"
+            value={profile.dailyTargets.vitaminB5}
+            onChange={(e) => updateTarget('vitaminB5', Number(e.target.value))}
+          />
+          <span className="unit">mg</span>
+        </div>
+        <div className="profile-field">
+          <label>Vitamina B6</label>
+          <input
+            type="number"
+            step="0.1"
+            value={profile.dailyTargets.vitaminB6}
+            onChange={(e) => updateTarget('vitaminB6', Number(e.target.value))}
+          />
+          <span className="unit">mg</span>
         </div>
         <div className="profile-field">
           <label>Vitamina C</label>
@@ -244,7 +362,7 @@ function UserProfileEditor({ onSave }: Props) {
             value={profile.dailyTargets.vitaminD}
             onChange={(e) => updateTarget('vitaminD', Number(e.target.value))}
           />
-          <span className="unit">mcg</span>
+          <span className="unit">µg</span>
         </div>
         <div className="profile-field">
           <label>Vitamina E</label>
@@ -262,7 +380,25 @@ function UserProfileEditor({ onSave }: Props) {
             value={profile.dailyTargets.vitaminK}
             onChange={(e) => updateTarget('vitaminK', Number(e.target.value))}
           />
-          <span className="unit">mcg</span>
+          <span className="unit">µg</span>
+        </div>
+        <div className="profile-field">
+          <label>Biotina (B7)</label>
+          <input
+            type="number"
+            value={profile.dailyTargets.biotin}
+            onChange={(e) => updateTarget('biotin', Number(e.target.value))}
+          />
+          <span className="unit">µg</span>
+        </div>
+        <div className="profile-field">
+          <label>Folato (B9)</label>
+          <input
+            type="number"
+            value={profile.dailyTargets.folate}
+            onChange={(e) => updateTarget('folate', Number(e.target.value))}
+          />
+          <span className="unit">µg</span>
         </div>
       </div>
 

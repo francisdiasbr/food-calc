@@ -1,21 +1,71 @@
 import { useState, useEffect } from 'react';
-import { SavedMeal, MEAL_LABELS } from '../types';
+import { MEAL_LABELS } from '../types';
+import { mealsAPI, SavedMeal } from '../services/api';
+
+// Função para formatar data completa (com dia da semana) sem problemas de timezone
+const formatDateFull = (dateStr: string): string => {
+  const [year, month, day] = dateStr.split('-');
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  return date.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+};
+
+// Função para ordenar datas no formato YYYY-MM-DD sem problemas de timezone
+const sortDates = (a: string, b: string): number => {
+  return b.localeCompare(a);
+};
 
 function MealHistory() {
   const [meals, setMeals] = useState<SavedMeal[]>([]);
   const [expandedMeal, setExpandedMeal] = useState<string | null>(null);
 
   useEffect(() => {
+    const loadMeals = async () => {
+      try {
+        const loadedMeals = await mealsAPI.getAll();
+        // Compatibilidade com dados antigos: antes existia apenas "snack"
+        const normalized = loadedMeals.map((m) => {
+          if ((m.mealType as string) === 'snack') {
+            return { ...m, mealType: 'snack1' as const };
+          }
+          return m;
+        });
+        setMeals(normalized);
+      } catch (error) {
+        console.error('Erro ao carregar refeições:', error);
+        // Fallback para localStorage se API falhar
     const saved = localStorage.getItem('meals');
     if (saved) {
-      setMeals(JSON.parse(saved));
+          const parsed = JSON.parse(saved) as unknown;
+          const normalized = (Array.isArray(parsed) ? parsed : []).map((m: any) => {
+            if (m?.mealType === 'snack') {
+              return { ...m, mealType: 'snack1' };
+            }
+            return m;
+          }) as SavedMeal[];
+          setMeals(normalized);
     }
+      }
+    };
+    loadMeals();
   }, []);
 
-  const deleteMeal = (id: string) => {
-    const updated = meals.filter(m => m.id !== id);
+  const deleteMeal = async (id: string) => {
+    try {
+      await mealsAPI.delete(id);
+      const updated = meals.filter(m => {
+        const mealId = m.id || m._id;
+        return mealId !== id;
+      });
     setMeals(updated);
-    localStorage.setItem('meals', JSON.stringify(updated));
+    } catch (error) {
+      console.error('Erro ao deletar refeição:', error);
+      alert('Erro ao deletar refeição. Tente novamente.');
+    }
   };
 
   const groupedByDate = meals.reduce((acc, meal) => {
@@ -26,9 +76,7 @@ function MealHistory() {
     return acc;
   }, {} as Record<string, SavedMeal[]>);
 
-  const sortedDates = Object.keys(groupedByDate).sort((a, b) =>
-    new Date(b).getTime() - new Date(a).getTime()
-  );
+  const sortedDates = Object.keys(groupedByDate).sort(sortDates);
 
   if (meals.length === 0) {
     return (
@@ -43,33 +91,45 @@ function MealHistory() {
 
   return (
     <div className="calculator">
-      {sortedDates.map(date => (
-        <div key={date} className="date-group">
-          <h3 className="date-header">
-            {new Date(date).toLocaleDateString('pt-BR', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            })}
-          </h3>
+      {sortedDates.map(date => {
+        // Calcular total de calorias do dia
+        const dayMeals = groupedByDate[date];
+        const totalDayCalories = dayMeals.reduce((sum, meal) => {
+          const mealCalories = meal.foods.reduce(
+            (mealSum, food) => mealSum + Number(food.calories.value),
+            0
+          );
+          return sum + mealCalories;
+        }, 0);
 
-          {groupedByDate[date]
+        return (
+          <div key={date} className="date-group">
+            <div className="date-header">
+              <h3 className="date-header-text">
+                {formatDateFull(date)}
+              </h3>
+              <span className="date-header-calories">
+                {totalDayCalories.toFixed(0)} kcal
+              </span>
+            </div>
+
+            {dayMeals
             .sort((a, b) => {
-              const order = ['breakfast', 'snack', 'lunch', 'dinner'];
+              const order = ['breakfast', 'snack1', 'lunch', 'snack2', 'dinner', 'supper'];
               return order.indexOf(a.mealType) - order.indexOf(b.mealType);
             })
             .map(meal => {
+              const mealId = meal.id || meal._id || '';
               const totalCalories = meal.foods.reduce(
                 (sum, f) => sum + Number(f.calories.value), 0
               );
-              const isExpanded = expandedMeal === meal.id;
+              const isExpanded = expandedMeal === mealId;
 
               return (
-                <div key={meal.id} className="meal-card">
+                <div key={mealId} className="meal-card">
                   <div
                     className="meal-card-header"
-                    onClick={() => setExpandedMeal(isExpanded ? null : meal.id)}
+                    onClick={() => setExpandedMeal(isExpanded ? null : mealId)}
                   >
                     <div className="meal-card-info">
                       <span className="meal-type-badge">{MEAL_LABELS[meal.mealType]}</span>
@@ -131,7 +191,7 @@ function MealHistory() {
                         className="delete-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteMeal(meal.id);
+                          deleteMeal(mealId);
                         }}
                       >
                         Excluir Refeição
@@ -141,8 +201,9 @@ function MealHistory() {
                 </div>
               );
             })}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

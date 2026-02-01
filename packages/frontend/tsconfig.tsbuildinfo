@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/components/caloriecalculator.tsx","./src/components/mealhistory.tsx","./src/components/menusimulator.tsx","./src/components/userprofileeditor.tsx","./src/services/api.ts"],"version":"5.9.3"}

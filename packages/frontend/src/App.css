@@ -456,13 +456,26 @@ body {
 }
 
 .date-header {
-  color: #555;
-  font-size: 0.9rem;
-  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid #e0e0e0;
+}
+
+.date-header-text {
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
   text-transform: capitalize;
+}
+
+.date-header-calories {
+  color: #667eea;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .meal-card {
@@ -565,19 +578,20 @@ body {
 /* Profile Editor */
 .profile-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
 
 .profile-grid.three-cols {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .profile-field {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .profile-field.full-width {
@@ -594,6 +608,8 @@ body {
 
 .profile-field input,
 .profile-field select {
+  width: 100%;
+  min-width: 0;
   padding: 10px 12px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
